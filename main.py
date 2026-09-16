@@ -115,7 +115,6 @@ fig_scatter = px.scatter(
     labels={'first_scrn': '개봉일 스크린수 (개)', 'total_audi': '총 관객 수 (명)'}
 )
 
-# 마우스 호버 양식 설정 (영화명, 장르, 스크린수, 총 관객수 표시)
 fig_scatter.update_traces(
     hovertemplate='<b>%{hovertext}</b><br>개봉일 스크린수: %{x:,}개<br>총 관객 수: %{y:,.0f}명'
 )
@@ -123,5 +122,37 @@ fig_scatter.update_traces(
 st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.info("💡 **이 그래프로 알 수 있는 것:** 대체로 개봉일 스크린수가 많을수록 총 관객 수도 증가하는 양의 상관관계를 보이지만, 일부 스크린수가 적음에도 높은 흥행을 기록한 예외적 작품도 존재합니다.")
+
+st.divider()
+
+
+# ==========================================
+# 5. 다섯 번째 그래프: 10편 이상 장르별 총 관객 수 박스플롯
+# ==========================================
+st.header("5. 주요 장르별 총 관객 수 분포 (박스플롯)")
+
+# 영화가 10편 이상인 장르만 추출
+genre_counts_series = df['genre'].value_counts()
+target_genres = genre_counts_series[genre_counts_series >= 10].index
+df_box = df[df['genre'].isin(target_genres)]
+
+fig_box = px.box(
+    df_box,
+    x='genre',
+    y='total_audi',
+    color='genre',
+    hover_name='movieNm',
+    points='outliers',  # 아웃라이어 점을 표시하여 호버 가능하게 설정
+    title='영화 수 10편 이상 주요 장르의 총 관객 수 분포',
+    labels={'genre': '장르', 'total_audi': '총 관객 수 (명)'}
+)
+
+fig_box.update_traces(
+    hovertemplate='<b>%{hovertext}</b><br>총 관객 수: %{y:,.0f}명'
+)
+
+st.plotly_chart(fig_box, use_container_width=True)
+
+st.info("💡 **이 그래프로 알 수 있는 것:** 장르별 중간값과 편차를 비교할 수 있으며, 박스 밖으로 크게 벗어난 이상치(점)를 통해 특정 장르의 초대형 흥행작을 한눈에 식별할 수 있습니다.")
 
 st.divider()
