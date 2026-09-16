@@ -22,16 +22,15 @@ def load_data():
 # 데이터 로드
 df = load_data()
 
+
 # ==========================================
 # 1. 첫 번째 그래프: 장르별 영화 편수 (도넛 그래프)
 # ==========================================
 st.header("1. 장르별 영화 편수 (도넛 그래프)")
 
-# 장르별 편수 집계
 genre_counts = df['genre'].value_counts().reset_index()
 genre_counts.columns = ['genre', 'count']
 
-# 플롯리 도넛 그래프 생성
 fig_donut = px.pie(
     genre_counts, 
     names='genre', 
@@ -39,13 +38,11 @@ fig_donut = px.pie(
     hole=0.4,
     title='장르별 개봉 영화 비율'
 )
-# 마우스를 올렸을 때(hover) 편수와 비율이 잘 보이도록 설정
 fig_donut.update_traces(hovertemplate='<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}')
 
 st.plotly_chart(fig_donut, use_container_width=True)
 
-# 그래프 해석 자리
-st.info("💡 **이 그래프로 알 수 있는 것:** (이곳에 장르 분포에 대한 해석을 한 문장으로 적어보세요.)")
+st.info("💡 **이 그래프로 알 수 me것:** (이곳에 장르 분포에 대한 해석을 한 문장으로 적어보세요.)")
 
 st.divider()
 
@@ -55,26 +52,54 @@ st.divider()
 # ==========================================
 st.header("2. 장르별 영화 총 관객 수 (트리맵)")
 
-# 트리맵을 그릴 때는 값이 0보다 커야 하므로 양수 데이터만 사용 (안전장치)
 df_treemap = df[df['total_audi'] > 0]
 
-# 플롯리 트리맵 생성
-# path에 계층 구조(장르 -> 영화명)를 넣고, values에 크기를 결정할 데이터를 넣습니다.
 fig_treemap = px.treemap(
     df_treemap,
     path=['genre', 'movieNm'], 
     values='total_audi',
     title='장르 및 개별 영화의 총 관객 수 분포'
 )
-
-# 마우스를 올렸을 때(hover) 영화명(또는 장르명)과 총 관객 수가 천 단위 콤마와 함께 보이도록 설정
-fig_treemap.update_traces(
-    hovertemplate='<b>%{label}</b><br>총 관객: %{value:,.0f}명'
-)
+fig_treemap.update_traces(hovertemplate='<b>%{label}</b><br>총 관객: %{value:,.0f}명')
 
 st.plotly_chart(fig_treemap, use_container_width=True)
 
-# 그래프 해석 자리
 st.info("💡 **이 그래프로 알 수 있는 것:** (이곳에 장르 내 특정 영화들의 관객 동원력이나 흥행 비중에 대한 해석을 한 문장으로 적어보세요.)")
+
+st.divider()
+
+
+# ==========================================
+# 3. 세 번째 그래프: 총 관객 수 히스토그램
+# ==========================================
+st.header("3. 총 관객 수 분포 (히스토그램)")
+
+# 히스토그램 생성
+fig_hist = px.histogram(
+    df, 
+    x='total_audi', 
+    nbins=30,
+    title='영화별 총 관객 수 분포 구간',
+    labels={'total_audi': '총 관객 수'},
+    color_discrete_sequence=['#636EFA']
+)
+fig_hist.update_layout(yaxis_title="영화 수")
+fig_hist.update_traces(hovertemplate='관객 수 구간: %{x}<br>영화 수: %{y}편')
+
+st.plotly_chart(fig_hist, use_container_width=True)
+
+# 최다 관객 영화 데이터 추출
+max_movie = df.loc[df['total_audi'].idxmax()]
+max_title = max_movie['movieNm']
+max_audi = max_movie['total_audi']
+
+# 상위 75% 지점 관객 수 계산 (대부분의 영화가 몰려있는 구간 파악용)
+q75 = df['total_audi'].quantile(0.75)
+
+# 알 수 있는 것 문구 표시 (데이터 기반 자동 계산)
+st.info(
+    f"💡 **이 그래프로 알 수 있는 것:** 대부분의 영화는 총 관객 수 **{int(q75):,}명 이하**(주로 100만~200만 명 미만) 구간에 집중되어 있으며, "
+    f"가장 관객 수가 많은 영화는 **'{max_title}'**({max_audi:,.0f}명)입니다."
+)
 
 st.divider()
