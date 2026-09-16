@@ -42,7 +42,7 @@ fig_donut.update_traces(hovertemplate='<b>%{label}</b><br>편수: %{value}편<br
 
 st.plotly_chart(fig_donut, use_container_width=True)
 
-st.info("💡 **이 그래프로 알 수 me것:** (이곳에 장르 분포에 대한 해석을 한 문장으로 적어보세요.)")
+st.info("💡 **이 그래프로 알 수 있는 것:** (이곳에 장르 분포에 대한 해석을 한 문장으로 적어보세요.)")
 
 st.divider()
 
@@ -74,7 +74,6 @@ st.divider()
 # ==========================================
 st.header("3. 총 관객 수 분포 (히스토그램)")
 
-# 히스토그램 생성
 fig_hist = px.histogram(
     df, 
     x='total_audi', 
@@ -88,18 +87,41 @@ fig_hist.update_traces(hovertemplate='관객 수 구간: %{x}<br>영화 수: %{y
 
 st.plotly_chart(fig_hist, use_container_width=True)
 
-# 최다 관객 영화 데이터 추출
 max_movie = df.loc[df['total_audi'].idxmax()]
 max_title = max_movie['movieNm']
 max_audi = max_movie['total_audi']
-
-# 상위 75% 지점 관객 수 계산 (대부분의 영화가 몰려있는 구간 파악용)
 q75 = df['total_audi'].quantile(0.75)
 
-# 알 수 있는 것 문구 표시 (데이터 기반 자동 계산)
 st.info(
-    f"💡 **이 그래프로 알 수 있는 것:** 대부분의 영화는 총 관객 수 **{int(q75):,}명 이하**(주로 100만~200만 명 미만) 구간에 집중되어 있으며, "
+    f"💡 **이 그래프로 알 수 있는 것:** 대부분의 영화는 총 관객 수 **{int(q75):,}명 이하** 구간에 집중되어 있으며, "
     f"가장 관객 수가 많은 영화는 **'{max_title}'**({max_audi:,.0f}명)입니다."
 )
+
+st.divider()
+
+
+# ==========================================
+# 4. 네 번째 그래프: 개봉일 스크린수 vs 총 관객수 (산점도)
+# ==========================================
+st.header("4. 개봉일 스크린수와 총 관객 수의 관계 (산점도)")
+
+fig_scatter = px.scatter(
+    df,
+    x='first_scrn',
+    y='total_audi',
+    color='genre',
+    hover_name='movieNm',
+    title='개봉일 스크린수 대비 총 관객 수 분포',
+    labels={'first_scrn': '개봉일 스크린수 (개)', 'total_audi': '총 관객 수 (명)'}
+)
+
+# 마우스 호버 양식 설정 (영화명, 장르, 스크린수, 총 관객수 표시)
+fig_scatter.update_traces(
+    hovertemplate='<b>%{hovertext}</b><br>개봉일 스크린수: %{x:,}개<br>총 관객 수: %{y:,.0f}명'
+)
+
+st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.info("💡 **이 그래프로 알 수 있는 것:** 대체로 개봉일 스크린수가 많을수록 총 관객 수도 증가하는 양의 상관관계를 보이지만, 일부 스크린수가 적음에도 높은 흥행을 기록한 예외적 작품도 존재합니다.")
 
 st.divider()
