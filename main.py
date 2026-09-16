@@ -22,7 +22,9 @@ def load_data():
 # 데이터 로드
 df = load_data()
 
-# 구역 나누기 (첫 번째 그래프)
+# ==========================================
+# 1. 첫 번째 그래프: 장르별 영화 편수 (도넛 그래프)
+# ==========================================
 st.header("1. 장르별 영화 편수 (도넛 그래프)")
 
 # 장르별 편수 집계
@@ -30,7 +32,6 @@ genre_counts = df['genre'].value_counts().reset_index()
 genre_counts.columns = ['genre', 'count']
 
 # 플롯리 도넛 그래프 생성
-# hole 속성을 주어 가운데가 뚫린 도넛 형태 생성
 fig_donut = px.pie(
     genre_counts, 
     names='genre', 
@@ -41,13 +42,39 @@ fig_donut = px.pie(
 # 마우스를 올렸을 때(hover) 편수와 비율이 잘 보이도록 설정
 fig_donut.update_traces(hovertemplate='<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}')
 
-# 그래프 출력
 st.plotly_chart(fig_donut, use_container_width=True)
 
-# 그래프 해석을 적을 자리 마련
+# 그래프 해석 자리
 st.info("💡 **이 그래프로 알 수 있는 것:** (이곳에 장르 분포에 대한 해석을 한 문장으로 적어보세요.)")
 
-# 다음 구역을 위한 구분선
 st.divider()
 
-# (필요하다면 이 아래에 두 번째, 세 번째 그래프 코드를 추가해 나갈 수 있습니다.)
+
+# ==========================================
+# 2. 두 번째 그래프: 관객 수 기반 트리맵
+# ==========================================
+st.header("2. 장르별 영화 총 관객 수 (트리맵)")
+
+# 트리맵을 그릴 때는 값이 0보다 커야 하므로 양수 데이터만 사용 (안전장치)
+df_treemap = df[df['total_audi'] > 0]
+
+# 플롯리 트리맵 생성
+# path에 계층 구조(장르 -> 영화명)를 넣고, values에 크기를 결정할 데이터를 넣습니다.
+fig_treemap = px.treemap(
+    df_treemap,
+    path=['genre', 'movieNm'], 
+    values='total_audi',
+    title='장르 및 개별 영화의 총 관객 수 분포'
+)
+
+# 마우스를 올렸을 때(hover) 영화명(또는 장르명)과 총 관객 수가 천 단위 콤마와 함께 보이도록 설정
+fig_treemap.update_traces(
+    hovertemplate='<b>%{label}</b><br>총 관객: %{value:,.0f}명'
+)
+
+st.plotly_chart(fig_treemap, use_container_width=True)
+
+# 그래프 해석 자리
+st.info("💡 **이 그래프로 알 수 있는 것:** (이곳에 장르 내 특정 영화들의 관객 동원력이나 흥행 비중에 대한 해석을 한 문장으로 적어보세요.)")
+
+st.divider()
