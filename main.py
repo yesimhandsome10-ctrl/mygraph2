@@ -15,7 +15,7 @@ def load_data():
     df = pd.read_csv(url)
     
     # 장르(genre) 전처리: '|' 기호로 여러 개가 적혀 있다면 첫 번째 장르만 추출
-    df['genre'] = df['genre'].apply(lambda x: str(x).split('|')[0] if pd.notnull(x) else x)
+    df['genre'] = df['genre'].apply(lambda x: str(x).split('|')[0] if pd.notnull(x) else '미분류')
     
     return df
 
@@ -48,15 +48,18 @@ st.divider()
 
 
 # ==========================================
-# 2. 두 번째 그래프: 관객 수 기반 트리맵
+# 2. 두 번째 그래프: 관객 수 기반 트리맵 (오류 수정 구간)
 # ==========================================
 st.header("2. 장르별 영화 총 관객 수 (트리맵)")
 
-df_treemap = df[df['total_audi'] > 0]
+# 트리맵 계층 구조 충돌 방지: 결측치 제거 후 장르-영화명 단위 중복 합산
+df_treemap = df.dropna(subset=['genre', 'movieNm']).copy()
+df_treemap = df_treemap.groupby(['genre', 'movieNm'], as_index=False)['total_audi'].sum()
+df_treemap = df_treemap[df_treemap['total_audi'] > 0]
 
 fig_treemap = px.treemap(
     df_treemap,
-    path=['genre', 'movieNm'], 
+    path=[px.Constant("전체"), 'genre', 'movieNm'], 
     values='total_audi',
     title='장르 및 개별 영화의 총 관객 수 분포'
 )
@@ -131,7 +134,6 @@ st.divider()
 # ==========================================
 st.header("5. 주요 장르별 총 관객 수 분포 (박스플롯)")
 
-# 영화가 10편 이상인 장르만 추출
 genre_counts_series = df['genre'].value_counts()
 target_genres = genre_counts_series[genre_counts_series >= 10].index
 df_box = df[df['genre'].isin(target_genres)]
@@ -142,7 +144,7 @@ fig_box = px.box(
     y='total_audi',
     color='genre',
     hover_name='movieNm',
-    points='outliers',  # 아웃라이어 점을 표시하여 호버 가능하게 설정
+    points='outliers',
     title='영화 수 10편 이상 주요 장르의 총 관객 수 분포',
     labels={'genre': '장르', 'total_audi': '총 관객 수 (명)'}
 )
