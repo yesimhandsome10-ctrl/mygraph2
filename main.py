@@ -15,6 +15,7 @@ def load_data():
     df = pd.read_csv(url)
     
     # 장르(genre) 전처리: '|' 기호로 여러 개가 적혀 있다면 첫 번째 장르만 추출
+    # 결측치는 '미분류'로 처리
     df['genre'] = df['genre'].apply(lambda x: str(x).split('|')[0] if pd.notnull(x) else '미분류')
     df['nation'] = df['nation'].fillna('미상')
     
@@ -199,7 +200,6 @@ st.divider()
 # ==========================================
 st.header("7. 제작 국가 및 장르별 영화 편수 (선버스트 그래프)")
 
-# 국가와 장르 조합별 영화 편수 집계
 df_sunburst = df.groupby(['nation', 'genre'], as_index=False).size()
 df_sunburst.columns = ['nation', 'genre', 'count']
 
@@ -217,5 +217,35 @@ fig_sunburst.update_traces(
 st.plotly_chart(fig_sunburst, use_container_width=True)
 
 st.info("💡 **이 그래프로 알 수 있는 것:** 한국과 미국 등 주요 제작 국가별로 제작되는 주요 장르 구성 비율의 차이를 계층적 도넛 형태로 직관적으로 파악할 수 있습니다.")
+
+st.divider()
+
+
+# ==========================================
+# 8. 여덟 번째 그래프: 10위권 유지 일수 vs 총 관객 수 (산점도)
+# ==========================================
+st.header("8. 10위권에 오래 머문 영화는 총 관객도 많은가")
+
+fig_top10 = px.scatter(
+    df,
+    x='days_in_top10',
+    y='total_audi',
+    color='genre',
+    hover_name='movieNm',
+    title='10위권에 오래 머문 영화는 총 관객도 많은가',
+    labels={
+        'days_in_top10': '10위권 유지 일수 (일)',
+        'total_audi': '총 관객 수 (명)',
+        'genre': '장르'
+    }
+)
+
+fig_top10.update_traces(
+    hovertemplate='<b>%{hovertext}</b><br>10위권 유지: %{x}일<br>총 관객 수: %{y:,.0f}명'
+)
+
+st.plotly_chart(fig_top10, use_container_width=True)
+
+st.info("💡 **이 그래프로 알 수 있는 것:** 10위권 머문 날수가 길수록 총 관객 수 역시 뚜렷하게 증가하는 강한 양의 상관관계를 보여주며, 장기 흥행(롱런)이 초대형 흥행의 핵심 조건임을 나타냅니다.")
 
 st.divider()
