@@ -15,7 +15,6 @@ def load_data():
     df = pd.read_csv(url)
     
     # 장르(genre) 전처리: '|' 기호로 여러 개가 적혀 있다면 첫 번째 장르만 추출
-    # 결측치는 '미분류'로 처리
     df['genre'] = df['genre'].apply(lambda x: str(x).split('|')[0] if pd.notnull(x) else '미분류')
     df['nation'] = df['nation'].fillna('미상')
     
@@ -222,30 +221,30 @@ st.divider()
 
 
 # ==========================================
-# 8. 여덟 번째 그래프: 10위권 유지 일수 vs 총 관객 수 (산점도)
+# 8. 여덟 번째 그래프: 개봉일 상영횟수 vs 개봉 첫 주 관객 수 (새로운 산점도 질문)
 # ==========================================
-st.header("8. 10위권에 오래 머문 영화는 총 관객도 많은가")
+st.header("8. 개봉일 상영횟수가 많으면 개봉 첫 주 관객 수도 많을까?")
 
-fig_top10 = px.scatter(
+fig_first_show = px.scatter(
     df,
-    x='days_in_top10',
-    y='total_audi',
+    x='first_show',
+    y='first_week_audi',
     color='genre',
     hover_name='movieNm',
-    title='10위권에 오래 머문 영화는 총 관객도 많은가',
+    title='개봉일 상영횟수가 많으면 개봉 첫 주 관객 수도 많을까?',
     labels={
-        'days_in_top10': '10위권 유지 일수 (일)',
-        'total_audi': '총 관객 수 (명)',
+        'first_show': '개봉일 상영횟수 (회)',
+        'first_week_audi': '개봉 첫 주 관객 수 (명)',
         'genre': '장르'
     }
 )
 
-fig_top10.update_traces(
-    hovertemplate='<b>%{hovertext}</b><br>10위권 유지: %{x}일<br>총 관객 수: %{y:,.0f}명'
+fig_first_show.update_traces(
+    hovertemplate='<b>%{hovertext}</b><br>개봉일 상영횟수: %{x:,}회<br>개봉 첫 주 관객: %{y:,.0f}명'
 )
 
-st.plotly_chart(fig_top10, use_container_width=True)
+st.plotly_chart(fig_first_show, use_container_width=True)
 
-st.info("💡 **이 그래프로 알 수 있는 것:** 10위권 머문 날수가 길수록 총 관객 수 역시 뚜렷하게 증가하는 강한 양의 상관관계를 보여주며, 장기 흥행(롱런)이 초대형 흥행의 핵심 조건임을 나타냅니다.")
+st.info("💡 **이 그래프로 알 수 있는 것:** 개봉 당일 상영횟수가 많이 배정된 영화일수록 초기 대중 노출도가 높아 개봉 첫 주 관객 수 역시 가파르게 증가하는 강한 상관관계를 보입니다.")
 
 st.divider()
